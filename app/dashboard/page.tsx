@@ -1,9 +1,12 @@
 import { createClientAction } from '@/app/auth/actions'
+import { getClientMetrics } from '@/lib/getClientMetrics'
+import { getUserClient } from '@/lib/getUserClient'
 import { getDashboardContext } from '@/lib/supabase/dashboard'
 
 type SearchParams = Promise<{
   error?: string | string[]
   message?: string | string[]
+  source?: string | string[]
 }>
 
 function getFirstValue(value: string | string[] | undefined) {
@@ -16,11 +19,21 @@ export default async function DashboardPage({
   searchParams: SearchParams
 }) {
   const { user, clients } = await getDashboardContext()
+  const directClient = await getUserClient()
   const params = await searchParams
   const error = getFirstValue(params.error)
   const message = getFirstValue(params.message)
+  const sourceFilter = getFirstValue(params.source)
+  const activeClient = directClient ?? clients[0] ?? null
+  const activeClientView = activeClient
+    ? {
+        ...activeClient,
+        plan: 'plan' in activeClient ? activeClient.plan : 'mvp',
+        role: 'role' in activeClient ? activeClient.role : 'owner',
+      }
+    : null
 
-  if (clients.length === 0) {
+  if (!activeClientView) {
     return (
       <section
         style={{
@@ -137,7 +150,8 @@ export default async function DashboardPage({
     )
   }
 
-  const activeClient = clients[0]
+  const metrics = await getClientMetrics(sourceFilter)
+  const linkedClientsCount = Math.max(clients.length, 1)
 
   return (
     <div style={{ display: 'grid', gap: '20px' }}>
@@ -173,7 +187,7 @@ export default async function DashboardPage({
         </h1>
         <p style={{ color: '#6b7280', lineHeight: 1.6 }}>
           Estrutura autenticada pronta. Seu tenant ativo no momento e{' '}
-          <strong>{activeClient.name}</strong> no plano <strong>{activeClient.plan}</strong>.
+          <strong>{activeClientView.name}</strong> no plano <strong>{activeClientView.plan}</strong>.
         </p>
       </div>
 
@@ -205,7 +219,7 @@ export default async function DashboardPage({
           }}
         >
           <p style={{ color: '#64748b', marginBottom: '8px' }}>Clientes vinculados</p>
-          <strong>{clients.length}</strong>
+          <strong>{linkedClientsCount}</strong>
         </article>
 
         <article
@@ -217,9 +231,101 @@ export default async function DashboardPage({
           }}
         >
           <p style={{ color: '#64748b', marginBottom: '8px' }}>Papel atual</p>
-          <strong>{activeClient.role}</strong>
+          <strong>{activeClientView.role}</strong>
         </article>
       </div>
+
+      {metrics?.rows.length ? (
+        <section style={{ display: 'grid', gap: '16px' }}>
+          <h2 style={{ margin: 0 }}>Métricas do cliente</h2>
+
+          <div
+            style={{
+              display: 'grid',
+              gap: '16px',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            }}
+          >
+            <article
+              style={{
+                background: '#ffffff',
+                borderRadius: '18px',
+                padding: '20px',
+                boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)',
+              }}
+            >
+              <p style={{ color: '#64748b', marginBottom: '8px' }}>Investimento total</p>
+              <strong>R$ {metrics.summary.totalSpend.toFixed(2)}</strong>
+            </article>
+
+            <article
+              style={{
+                background: '#ffffff',
+                borderRadius: '18px',
+                padding: '20px',
+                boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)',
+              }}
+            >
+              <p style={{ color: '#64748b', marginBottom: '8px' }}>Cliques totais</p>
+              <strong>{metrics.summary.totalClicks}</strong>
+            </article>
+
+            <article
+              style={{
+                background: '#ffffff',
+                borderRadius: '18px',
+                padding: '20px',
+                boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)',
+              }}
+            >
+              <p style={{ color: '#64748b', marginBottom: '8px' }}>Leads totais</p>
+              <strong>{metrics.summary.totalLeads}</strong>
+            </article>
+
+            <article
+              style={{
+                background: '#ffffff',
+                borderRadius: '18px',
+                padding: '20px',
+                boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)',
+              }}
+            >
+              <p style={{ color: '#64748b', marginBottom: '8px' }}>Conversões totais</p>
+              <strong>{metrics.summary.totalConversions}</strong>
+            </article>
+
+            <article
+              style={{
+                background: '#ffffff',
+                borderRadius: '18px',
+                padding: '20px',
+                boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)',
+              }}
+            >
+              <p style={{ color: '#64748b', marginBottom: '8px' }}>Receita total</p>
+              <strong>R$ {metrics.summary.totalRevenue.toFixed(2)}</strong>
+            </article>
+          </div>
+
+          <p style={{ color: '#64748b', margin: 0 }}>
+            Fonte: {metrics.sourceFilter ?? 'todas'} • Registros: {metrics.rows.length}
+          </p>
+        </section>
+      ) : (
+        <section
+          style={{
+            background: '#ffffff',
+            borderRadius: '18px',
+            padding: '20px',
+            boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)',
+          }}
+        >
+          <h2 style={{ marginTop: 0 }}>Métricas do cliente</h2>
+          <p style={{ color: '#64748b', marginBottom: 0 }}>
+            Ainda não existem métricas para este cliente.
+          </p>
+        </section>
+      )}
 
       <section
         style={{
