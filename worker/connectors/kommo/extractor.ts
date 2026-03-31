@@ -120,6 +120,7 @@ export async function extractKommoIncremental(params: {
 
   for (const lead of incrementalSlice.leads) {
     impactedDateSet.add(toDateKey(lead.created_at))
+    impactedDateSet.add(toDateKey(lead.updated_at))
 
     const key =
       lead.pipeline_id !== null && lead.status_id !== null
@@ -129,7 +130,7 @@ export async function extractKommoIncremental(params: {
     const stageClass: KommoStageClass = key ? stageClassMap.get(key) ?? 'other' : 'other'
 
     if (stageClass === 'won') {
-      impactedDateSet.add(toDateKey(lead.updated_at))
+      // Mantido apenas para visibilidade futura de regras por classe.
     }
 
     if (lead.updated_at > maxUpdatedAt) {
