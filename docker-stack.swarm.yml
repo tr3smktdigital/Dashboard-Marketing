@@ -1,0 +1,92 @@
+version: "3.8"
+
+services:
+  app:
+<<<<<<< ours
+<<<<<<< ours
+<<<<<<< ours
+    image: dashboard-marketing:latest
+=======
+    image: ${APP_IMAGE}
+>>>>>>> theirs
+=======
+    image: ${APP_IMAGE}
+>>>>>>> theirs
+=======
+    image: ${APP_IMAGE}
+>>>>>>> theirs
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+      APP_URL: ${APP_URL}
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}
+    networks:
+      - traefik-public
+    healthcheck:
+      test:
+<<<<<<< ours
+<<<<<<< ours
+<<<<<<< ours
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+=======
+=======
+>>>>>>> theirs
+=======
+>>>>>>> theirs
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
+<<<<<<< ours
+<<<<<<< ours
+>>>>>>> theirs
+=======
+>>>>>>> theirs
+=======
+>>>>>>> theirs
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+<<<<<<< ours
+<<<<<<< ours
+<<<<<<< ours
+=======
+      placement:
+        constraints:
+          - node.role == manager
+>>>>>>> theirs
+=======
+      placement:
+        constraints:
+          - node.role == manager
+>>>>>>> theirs
+=======
+      placement:
+        constraints:
+          - node.role == manager
+>>>>>>> theirs
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=TR3S_Dashboards
+        - traefik.http.routers.dashboard-marketing.rule=Host(`${APP_DOMAIN}`)
+        - traefik.http.routers.dashboard-marketing.entrypoints=websecure
+        - traefik.http.routers.dashboard-marketing.tls=true
+        - traefik.http.routers.dashboard-marketing.tls.certresolver=letsencryptresolver
+        - traefik.http.services.dashboard-marketing.loadbalancer.server.port=3000
+
+networks:
+  traefik-public:
+    external: true
+    name: TR3S_Dashboards

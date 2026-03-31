@@ -10,7 +10,9 @@ export async function POST(request: NextRequest) {
 
   revalidatePath('/', 'layout')
 
-  return NextResponse.redirect(new URL('/login?message=Voce+saiu+da+sua+conta.', request.url), {
-    status: 302,
-  })
+  const logoutRedirect = new URL(request.url)
+  logoutRedirect.pathname = '/login'
+  logoutRedirect.search = 'message=Voce+saiu+da+sua+conta.'
+
+  return NextResponse.redirect(logoutRedirect, { status: 302 })
 }
