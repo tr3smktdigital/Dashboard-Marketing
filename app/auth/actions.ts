@@ -23,9 +23,29 @@ function toSlug(value: string) {
     .replace(/^-+|-+$/g, '')
 }
 
+function normalizeBaseUrl(value: string | null | undefined) {
+  if (!value) {
+    return null
+  }
+
+  try {
+    const parsed = new URL(value)
+    const blockedHosts = new Set(['0.0.0.0', '127.0.0.1', 'localhost'])
+
+    if (blockedHosts.has(parsed.hostname)) {
+      return null
+    }
+
+    return parsed.origin
+  } catch {
+    return null
+  }
+}
+
 async function getBaseUrl() {
-  const configuredUrl =
+  const configuredUrl = normalizeBaseUrl(
     process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? null
+  )
 
   if (configuredUrl) {
     return configuredUrl

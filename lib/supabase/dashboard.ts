@@ -2,6 +2,7 @@ import 'server-only'
 
 import { redirect } from 'next/navigation'
 
+import { getUserClient } from '@/lib/getUserClient'
 import { createClient } from '@/lib/supabase/server'
 
 export type DashboardClient = {
@@ -105,6 +106,20 @@ export async function getDashboardContext() {
         },
       ]
     })
+
+  if (clients.length === 0) {
+    const fallbackClient = await getUserClient()
+
+    if (fallbackClient) {
+      clients.push({
+        id: fallbackClient.id,
+        name: fallbackClient.name,
+        slug: fallbackClient.slug,
+        plan: 'mvp',
+        role: 'owner',
+      })
+    }
+  }
 
   return {
     user: {
