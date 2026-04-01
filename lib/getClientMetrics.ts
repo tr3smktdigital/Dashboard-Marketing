@@ -32,6 +32,7 @@ export type ClientMetricsResult = {
 type MetricRow = {
   metric_date: string
   source: string
+  metric_key: string
   impressions: number | null
   clicks: number | null
   spend: number | string | null
@@ -66,9 +67,10 @@ export async function getClientMetrics(source?: string) {
   let query = supabase
     .from('client_metrics_daily')
     .select(
-      'metric_date, source, impressions, clicks, spend, leads, conversions, revenue'
+      'metric_date, source, metric_key, impressions, clicks, spend, leads, conversions, revenue'
     )
     .eq('client_id', currentClient.id)
+    .eq('metric_key', 'summary')
     .order('metric_date', { ascending: true })
 
   if (sourceFilter) {
